@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>다글로 워크스페이스 관리자 콘솔</title>
+  <link rel="stylesheet" href="admin-console.css" />
+</head>
+<body>
+  <div class="workspace-shell">
+    <aside class="sidebar" aria-label="주요 내비게이션">
+      <div class="workspace-meta">
+        <div class="workspace-brand">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/a/a6/%EB%8B%A4%EA%B8%80%EB%A1%9C_%EB%A1%9C%EA%B3%A0_2023.png"
+            alt="다글로 로고"
+            class="workspace-logo"
+          />
+          <div class="workspace-brand-text">
+            <h1>Yunsung F&C 워크스페이스</h1>
+            <div class="badge">엔터프라이즈 플랜</div>
+          </div>
+        </div>
+        <p>윤성F&C 조직 단위 사용 · 계정 · 정책을 한 눈에 관리하세요.</p>
+        <button class="btn secondary ghost" type="button">관리자 가이드</button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#overview" class="active">개요</a>
+        <a href="#users">사용자 · 계정</a>
+        <a href="#teams">팀</a>
+        <a href="#projects">프로젝트</a>
+        <a href="#usage">사용량 · 리포트</a>
+        <a href="#policies">정책</a>
+        <a href="#audit">감사 로그</a>
+      </nav>
+      <button class="btn tertiary csv-export" type="button" disabled aria-describedby="csv-tooltip">
+        CSV 내보내기
+      </button>
+      <p id="csv-tooltip" class="tooltip" role="status">서버 준비 중 · API 연결 후 자동 활성화됩니다.</p>
+    </aside>
+
+    <main>
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">워크스페이스</p>
+          <h2>다글로 엔터프라이즈 · Yunsung F&C</h2>
+          <p class="muted">이번 달 실사용량, 계정 상태, 보안 정책 변경 알림을 집계합니다.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn secondary" type="button">계정 추가 등록</button>
+          <button class="btn primary" type="button">새 멤버 초대</button>
+        </div>
+      </header>
+
+      <section id="overview" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">개요</p>
+            <h3>이번 달 윤성F&C 현황</h3>
+          </div>
+          <div class="period-toggle">
+            <button type="button" class="chip" data-range="7d">7일</button>
+            <button type="button" class="chip is-active" data-range="30d">30일</button>
+            <button type="button" class="chip" data-range="90d">90일</button>
+          </div>
+        </div>
+        <div class="overview-grid">
+          <article class="metric-card">
+            <p>이번 달 사용량</p>
+            <strong><span data-id="metric-monthly-units">94,500</span> 크레딧</strong>
+            <small>지난달 대비 <span class="trend up" data-id="metric-monthly-diff">+13%</span></small>
+          </article>
+          <article class="metric-card">
+            <p>이번 달 결제 비용</p>
+            <strong><span data-id="metric-billing">6,500,000</span>원</strong>
+            <small>지난달 대비 <span class="trend up">+8%</span> · 결제 예정일 3월 31일</small>
+          </article>
+          <article class="metric-card">
+            <p>계정 사용률</p>
+            <strong data-id="metric-seat">80%</strong>
+            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="progress-bar" data-id="metric-seat-bar"></div>
+            </div>
+            <small><span data-id="seat-used">200</span>/<span data-id="seat-total">250</span> 계정</small>
+          </article>
+          <article class="metric-card">
+            <p>상위 기능</p>
+            <ul class="top-features" data-id="metric-top-features">
+              <li>회의록 작성 · 32%</li>
+              <li>문서 요약 · 27%</li>
+              <li>멀티모델 채팅 · 24%</li>
+              <li>AI 슬라이드 제작 · 17%</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="users" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">사용자 · 계정</p>
+            <h3>계정 상태와 최근 활동</h3>
+          </div>
+          <div class="inline-actions">
+            <button class="btn secondary" type="button" data-action="invite">+ 초대</button>
+            <button class="btn ghost" type="button" data-action="refresh">새로고침</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>
+            <span>검색</span>
+            <input type="search" name="search" placeholder="이름, 이메일" data-filter="search" />
+          </label>
+          <label>
+            <span>역할</span>
+            <select data-filter="role">
+              <option value="">전체</option>
+              <option value="Owner">소유자</option>
+              <option value="Admin">관리자</option>
+              <option value="BillingAdmin">결제 담당</option>
+              <option value="Manager">팀 관리자</option>
+              <option value="Member">구성원</option>
+            </select>
+          </label>
+          <label>
+            <span>계정 상태</span>
+            <select data-filter="seat">
+              <option value="">전체</option>
+              <option value="활성">활성</option>
+              <option value="미사용">미사용</option>
+              <option value="회수대상">회수 대상</option>
+              <option value="일시중지">일시중지</option>
+            </select>
+          </label>
+          <label>
+            <span>최근 활동</span>
+            <select data-filter="activity">
+              <option value="">전체</option>
+              <option value="7">7일 이내</option>
+              <option value="30">30일 이내</option>
+              <option value="60">60일 이상 미사용</option>
+            </select>
+          </label>
+          <label>
+            <span>팀</span>
+            <select data-filter="team" data-static="true">
+              <option value="">전체</option>
+              <option value="PM1팀">PM1팀</option>
+              <option value="회계팀">회계팀</option>
+              <option value="인사팀">인사팀</option>
+              <option value="영업팀">영업팀</option>
+            </select>
+          </label>
+        </div>
+        <div class="bulk-actions" aria-live="polite">
+          <p><strong data-selected-count>0명</strong> 선택됨</p>
+          <div class="bulk-buttons">
+            <button type="button" class="btn tertiary" data-bulk-action="role">역할 변경</button>
+            <button type="button" class="btn tertiary" data-bulk-action="team">팀 이동</button>
+            <button type="button" class="btn tertiary" data-bulk-action="seat">계정 회수</button>
+            <button type="button" class="btn tertiary" data-bulk-action="suspend">일시중지</button>
+          </div>
+        </div>
+        <div class="table-wrapper" data-users-table data-static="true">
+          <div class="table-overlay" aria-hidden="true">불러오는 중...</div>
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" data-master-checkbox /></th>
+                <th data-sort="name">이름 · 이메일</th>
+                <th data-sort="role">역할</th>
+                <th>팀</th>
+                <th data-sort="seat">계정</th>
+                <th data-sort="activity">최근 활동</th>
+                <th data-sort="usage7">7일/30일</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody data-users-body data-static="true">
+              <tr>
+                <td><input type="checkbox" data-row-checkbox value="ys-1" /></td>
+                <td>
+                  <div class="user-cell">
+                    <strong>윤하린</strong>
+                    <p>harin@yunsungfnc.com</p>
+                  </div>
+                </td>
+                <td><span class="role-pill">소유자</span></td>
+                <td>PM1팀</td>
+                <td>활성</td>
+                <td>전사 회의록 계정 검토 완료 (5분 전)</td>
+                <td><strong>3,600</strong> / 10,100</td>
+                <td>
+                  <button class="btn small ghost" data-row-action="seat" data-user="ys-1">계정 조정</button>
+                  <button class="btn small ghost" data-row-action="suspend" data-user="ys-1">일시중지</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" data-row-checkbox value="ys-2" /></td>
+                <td>
+                  <div class="user-cell">
+                    <strong>조이현</strong>
+                    <p>yhcho@yunsungfnc.com</p>
+                  </div>
+                </td>
+                <td><span class="role-pill">관리자</span></td>
+                <td>회계팀</td>
+                <td>활성</td>
+                <td>라인별 사용량 보고서 내보내기</td>
+                <td><strong>2,400</strong> / 6,800</td>
+                <td>
+                  <button class="btn small ghost" data-row-action="seat" data-user="ys-2">계정 조정</button>
+                  <button class="btn small ghost" data-row-action="suspend" data-user="ys-2">일시중지</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" data-row-checkbox value="ys-3" /></td>
+                <td>
+                  <div class="user-cell">
+                    <strong>장태경</strong>
+                    <p>tkjang@yunsungfnc.com</p>
+                  </div>
+                </td>
+                <td><span class="role-pill">팀 관리자</span></td>
+                <td>인사팀</td>
+                <td>활성</td>
+                <td>합성수지 데이터룸 계정 정책 수정</td>
+                <td><strong>1,850</strong> / 5,900</td>
+                <td>
+                  <button class="btn small ghost" data-row-action="seat" data-user="ys-3">계정 조정</button>
+                  <button class="btn small ghost" data-row-action="suspend" data-user="ys-3">일시중지</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" data-row-checkbox value="ys-4" /></td>
+                <td>
+                  <div class="user-cell">
+                    <strong>문지은</strong>
+                    <p>jieun@yunsungfnc.com</p>
+                  </div>
+                </td>
+                <td><span class="role-pill">구성원</span></td>
+                <td>영업팀</td>
+                <td>미사용</td>
+                <td>초대 대기 · 계정 승인 필요</td>
+                <td><strong>0</strong> / 0</td>
+                <td>
+                  <button class="btn small ghost" data-row-action="seat" data-user="ys-4">계정 조정</button>
+                  <button class="btn small ghost" data-row-action="suspend" data-user="ys-4">일시중지</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" data-row-checkbox value="ys-5" /></td>
+                <td>
+                  <div class="user-cell">
+                    <strong>서우성</strong>
+                    <p>woosung@yunsungfnc.com</p>
+                  </div>
+                </td>
+                <td><span class="role-pill">구성원</span></td>
+                <td>영업팀</td>
+                <td>일시중지</td>
+                <td>보안 점검으로 계정 일시중지</td>
+                <td><strong>0</strong> / 0</td>
+                <td>
+                  <button class="btn small ghost" data-row-action="seat" data-user="ys-5">계정 조정</button>
+                  <button class="btn small ghost" data-row-action="suspend" data-user="ys-5">일시중지</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="state-message empty" hidden data-empty-state>
+            <strong>조건에 맞는 사용자가 없습니다.</strong>
+            <p>필터를 조정하거나 새 사용자를 초대하세요.</p>
+          </div>
+          <div class="state-message error" hidden data-error-state>
+            <strong>데이터를 불러오지 못했습니다.</strong>
+            <p>잠시 후 다시 시도하거나 관리자에게 문의하세요.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="teams" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">팀</p>
+            <h3>팀별 계정 및 사용량</h3>
+          </div>
+          <button class="btn secondary" type="button">새 팀 생성</button>
+        </div>
+        <div class="team-grid" data-team-grid data-static="true">
+          <div class="team-card">
+            <div>
+              <h4>PM1팀</h4>
+              <p class="muted">담당자 · 윤하린</p>
+            </div>
+            <p><strong>65/80</strong> 계정 · 81%</p>
+            <div class="sparkline"><span style="width:81%"></span></div>
+            <p>이번달 사용량 <strong>22,400</strong> 크레딧 (+9%)</p>
+          </div>
+          <div class="team-card">
+            <div>
+              <h4>회계팀</h4>
+              <p class="muted">담당자 · 조이현</p>
+            </div>
+            <p><strong>48/55</strong> 계정 · 87%</p>
+            <div class="sparkline"><span style="width:87%"></span></div>
+            <p>이번달 사용량 <strong>18,200</strong> 크레딧 (+6%)</p>
+          </div>
+          <div class="team-card">
+            <div>
+              <h4>인사팀</h4>
+              <p class="muted">담당자 · 장태경</p>
+            </div>
+            <p><strong>42/60</strong> 계정 · 70%</p>
+            <div class="sparkline"><span style="width:70%"></span></div>
+            <p>이번달 사용량 <strong>12,600</strong> 크레딧 (+4%)</p>
+          </div>
+          <div class="team-card">
+            <div>
+              <h4>영업팀</h4>
+              <p class="muted">담당자 · 문지은</p>
+            </div>
+            <p><strong>45/55</strong> 계정 · 82%</p>
+            <div class="sparkline"><span style="width:82%"></span></div>
+            <p>이번달 사용량 <strong>15,300</strong> 크레딧 (+7%)</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">프로젝트</p>
+            <h3>프로젝트 활성도</h3>
+          </div>
+          <button class="btn ghost" type="button">프로젝트 관리</button>
+        </div>
+        <div class="table-wrapper compact">
+          <table>
+            <thead>
+              <tr>
+                <th>프로젝트</th>
+                <th>소속</th>
+                <th>월간 사용량</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody data-projects-body data-static="true">
+              <tr>
+                <td>PM1 분기 리뷰</td>
+                <td>PM1팀</td>
+                <td>12,800 크레딧</td>
+                <td>운영 중</td>
+              </tr>
+              <tr>
+                <td>재무 결산 자동화</td>
+                <td>회계팀</td>
+                <td>9,600 크레딧</td>
+                <td>운영 중</td>
+              </tr>
+              <tr>
+                <td>인재 온보딩 패키지</td>
+                <td>인사팀</td>
+                <td>7,400 크레딧</td>
+                <td>보호 모드</td>
+              </tr>
+              <tr>
+                <td>B2B 세일즈 플레이북</td>
+                <td>영업팀</td>
+                <td>5,900 크레딧</td>
+                <td>파일럿</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="usage" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">사용량 · 리포트</p>
+            <h3>필터 기반 사용량 리포트</h3>
+          </div>
+          <div class="inline-actions">
+            <button class="btn ghost" type="button">자동 보고서 예약</button>
+          </div>
+        </div>
+        <form class="filter-bar" data-usage-filter>
+          <label>
+            <span>기간</span>
+            <select name="period">
+              <option value="7">최근 7일</option>
+              <option value="30" selected>최근 30일</option>
+              <option value="90">최근 90일</option>
+            </select>
+          </label>
+          <label>
+            <span>범위</span>
+            <select name="scope">
+              <option value="workspace">워크스페이스 전체</option>
+              <option value="team">팀</option>
+              <option value="project">프로젝트</option>
+              <option value="user">사용자</option>
+            </select>
+          </label>
+          <label>
+            <span>기능</span>
+            <select name="feature">
+              <option value="">전체</option>
+              <option value="stt">회의 STT</option>
+              <option value="summary">요약/템플릿</option>
+              <option value="chat">멀티모델 채팅</option>
+            </select>
+          </label>
+          <label>
+            <span>플랫폼</span>
+            <select name="platform">
+              <option value="">전체</option>
+              <option value="web">웹</option>
+              <option value="mobile">모바일</option>
+              <option value="api">API 연동</option>
+            </select>
+          </label>
+        </form>
+        <div class="usage-cards" data-usage-cards data-static="true">
+          <article class="usage-card" data-card="total">
+            <p>총 사용량</p>
+            <strong data-id="usage-total">94,500 크레딧</strong>
+            <small>추가 사용 예상 <span data-id="usage-overage">13%</span></small>
+          </article>
+          <article class="usage-card" data-card="remaining">
+            <p>잔여</p>
+            <strong data-id="usage-remaining">70,500 크레딧</strong>
+            <small>예상 소진일 <span data-id="usage-estimate">4월 8일 예상</span></small>
+          </article>
+          <article class="usage-card" data-card="trend">
+            <p>예상 초과</p>
+            <strong data-id="usage-warning">12,000 크레딧</strong>
+            <small>알림 설정 · 결제 담당자에게 전송됨</small>
+          </article>
+        </div>
+        <div class="chart-grid">
+          <article class="chart-panel" aria-live="polite">
+            <header>
+              <h4>일별 추이</h4>
+              <button class="btn ghost" type="button" data-action="download-trend">CSV 내보내기</button>
+            </header>
+            <div class="trend-chart" data-trend-chart data-static="true">
+              <div class="trend-bar" style="height:67%"><span>01-27</span></div>
+              <div class="trend-bar" style="height:69%"><span>01-28</span></div>
+              <div class="trend-bar" style="height:72%"><span>01-29</span></div>
+              <div class="trend-bar" style="height:74%"><span>01-30</span></div>
+              <div class="trend-bar" style="height:76%"><span>01-31</span></div>
+              <div class="trend-bar" style="height:79%"><span>02-01</span></div>
+              <div class="trend-bar" style="height:82%"><span>02-02</span></div>
+              <div class="trend-bar" style="height:85%"><span>02-03</span></div>
+              <div class="trend-bar" style="height:89%"><span>02-04</span></div>
+              <div class="trend-bar" style="height:91%"><span>02-05</span></div>
+              <div class="trend-bar" style="height:94%"><span>02-06</span></div>
+              <div class="trend-bar" style="height:97%"><span>02-07</span></div>
+              <div class="trend-bar" style="height:99%"><span>02-08</span></div>
+              <div class="trend-bar" style="height:100%"><span>02-09</span></div>
+            </div>
+          </article>
+          <article class="chart-panel">
+            <header>
+              <h4>기능 분포</h4>
+              <button class="btn ghost" type="button" data-action="feature-insight">모델별 보기</button>
+            </header>
+            <ul class="distribution" data-distribution data-static="true">
+              <li>
+                <span>회의록 작성</span>
+                <div class="bar"><span style="width:32%"></span></div>
+                <strong>32%</strong>
+              </li>
+              <li>
+                <span>문서 요약</span>
+                <div class="bar"><span style="width:27%"></span></div>
+                <strong>27%</strong>
+              </li>
+              <li>
+                <span>멀티모델 채팅</span>
+                <div class="bar"><span style="width:24%"></span></div>
+                <strong>24%</strong>
+              </li>
+              <li>
+                <span>AI 슬라이드 제작</span>
+                <div class="bar"><span style="width:17%"></span></div>
+                <strong>17%</strong>
+              </li>
+            </ul>
+          </article>
+        </div>
+        <div class="top-grid">
+          <article>
+            <h4>상위 사용자</h4>
+            <ul class="top-list" data-top="users" data-static="true">
+              <li><span>1. 윤하린</span><strong>10,100</strong></li>
+              <li><span>2. 조이현</span><strong>6,800</strong></li>
+              <li><span>3. 장태경</span><strong>5,900</strong></li>
+            </ul>
+          </article>
+          <article>
+            <h4>상위 팀</h4>
+            <ul class="top-list" data-top="teams" data-static="true">
+              <li><span>1. PM1팀</span><strong>22,400</strong></li>
+              <li><span>2. 회계팀</span><strong>18,200</strong></li>
+              <li><span>3. 영업팀</span><strong>15,300</strong></li>
+            </ul>
+          </article>
+          <article>
+            <h4>상위 프로젝트</h4>
+            <ul class="top-list" data-top="projects" data-static="true">
+              <li><span>1. PM1 분기 리뷰</span><strong>12,800</strong></li>
+              <li><span>2. 재무 결산 자동화</span><strong>9,600</strong></li>
+              <li><span>3. 인재 온보딩 패키지</span><strong>7,400</strong></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="policies" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">정책</p>
+            <h3>모델 · 보안 · 한도 정책</h3>
+          </div>
+          <button class="btn secondary" type="button" data-action="new-policy">새 정책</button>
+        </div>
+        <div class="policy-grid">
+          <form class="policy-card" data-policy-form="models">
+            <h4>모델 제한</h4>
+            <label>
+              <span>허용 모델</span>
+              <input type="text" value="GPT-4.1, Claude 3.5, Gemini 2" />
+            </label>
+            <label>
+              <span>차단 모델</span>
+              <input type="text" value="Grok beta" />
+            </label>
+            <button type="button" class="btn small primary" data-policy-action="models">저장</button>
+          </form>
+          <form class="policy-card" data-policy-form="sharing">
+            <h4>외부 공유</h4>
+            <label class="toggle">
+              <input type="checkbox" checked />
+              <span>워크스페이스 밖 공유 허용</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" />
+              <span>비승인 템플릿 차단</span>
+            </label>
+            <button type="button" class="btn small primary" data-policy-action="sharing">저장</button>
+          </form>
+          <form class="policy-card" data-policy-form="retention">
+            <h4>데이터 보관기간</h4>
+            <label>
+              <span>보관 일수</span>
+              <input type="number" value="365" min="30" />
+            </label>
+            <label>
+              <span>자동 삭제</span>
+              <select>
+                <option value="off">사용 안 함</option>
+                <option value="workspace" selected>워크스페이스 전체</option>
+              </select>
+            </label>
+            <button type="button" class="btn small primary" data-policy-action="retention">저장</button>
+          </form>
+          <form class="policy-card" data-policy-form="quota">
+            <h4>팀/유저 한도</h4>
+            <label>
+              <span>팀</span>
+              <select>
+                <option value="PM1팀">PM1팀</option>
+                <option value="회계팀">회계팀</option>
+                <option value="인사팀">인사팀</option>
+                <option value="영업팀">영업팀</option>
+              </select>
+            </label>
+            <label>
+              <span>월간 한도 (크레딧)</span>
+              <input type="number" value="12000" step="100" />
+            </label>
+            <label>
+              <span>미사용 계정 자동 회수</span>
+              <select>
+                <option value="none">끄기</option>
+                <option value="14">14일</option>
+                <option value="21" selected>21일</option>
+                <option value="30">30일</option>
+              </select>
+            </label>
+            <button type="button" class="btn small primary" data-policy-action="quota">저장</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="audit" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">감사 로그</p>
+            <h3>모든 관리자 작업 추적</h3>
+          </div>
+          <button class="btn ghost" type="button">로그 다운로드 (준비중)</button>
+        </div>
+        <form class="filter-bar compact" data-audit-filter>
+          <label>
+            <span>행위자</span>
+            <select name="actor">
+              <option value="">전체</option>
+              <option value="윤하린">윤하린</option>
+              <option value="조이현">조이현</option>
+              <option value="장태경">장태경</option>
+            </select>
+          </label>
+          <label>
+            <span>액션</span>
+            <select name="action">
+              <option value="">전체</option>
+              <option value="seat.allocate">계정 배정</option>
+              <option value="seat.reclaim">계정 회수</option>
+              <option value="user.suspend">사용자 중지</option>
+              <option value="policy.update">정책 수정</option>
+            </select>
+          </label>
+          <label>
+            <span>기간</span>
+            <select name="range">
+              <option value="7">7일</option>
+              <option value="30" selected>30일</option>
+              <option value="90">90일</option>
+            </select>
+          </label>
+        </form>
+        <div class="audit-list" data-audit-list data-static="true">
+          <div class="audit-item">
+            <div>
+              <strong>계정 배정</strong>
+              <p class="muted">회계팀 계정 1개 배정</p>
+            </div>
+            <div class="audit-meta">
+              <p>윤하린 → 조이현</p>
+              <p>2025-02-09 09:15</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <div>
+              <strong>정책 수정</strong>
+              <p class="muted">Gemini 2 Pro 허용</p>
+            </div>
+            <div class="audit-meta">
+              <p>조이현 → 모델 제한</p>
+              <p>2025-02-08 18:40</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <div>
+              <strong>사용자 중지</strong>
+              <p class="muted">보안 점검</p>
+            </div>
+            <div class="audit-meta">
+              <p>장태경 → 서우성</p>
+              <p>2025-02-07 11:05</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <div>
+              <strong>계정 회수</strong>
+              <p class="muted">45일 미사용</p>
+            </div>
+            <div class="audit-meta">
+              <p>윤하린 → 문지은</p>
+              <p>2025-02-05 15:02</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" data-modal hidden aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div>
+        <p class="eyebrow" data-modal-eyebrow>확인</p>
+        <h3 data-modal-title>작업을 확인하세요</h3>
+        <p data-modal-body></p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" data-modal-cancel>취소</button>
+        <button type="button" class="btn danger" data-modal-confirm>확인</button>
+      </div>
+      <p class="modal-hint">작업 완료 후 30분 내 되돌리기가 가능합니다.</p>
+    </div>
+  </div>
+
+  <div class="toast-stack" aria-live="polite"></div>
+
+  <script src="admin-console.js" type="module"></script>
+</body>
+</html>
